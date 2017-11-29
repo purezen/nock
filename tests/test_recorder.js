@@ -1,23 +1,22 @@
 'use strict';
 
 var nock    = require('../.')
-  , tap     = require('tap')
+  , test    = require('tap').test
   , http    = require('http')
   , https   = require('https')
   , _       = require('lodash')
-  , debug   = require('debug')('nock.test_recorder')
   , mikealRequest = require('request')
   , superagent = require('superagent')
   , rest = require('restler');
 
 var globalCount;
 
-tap.test("setup", function(t) {
+test("setup", function(t) {
   globalCount = Object.keys(global).length;
   t.end();
 });
 
-tap.test('recording turns off nock interception (backward compatibility behavior)', function(t) {
+test('recording turns off nock interception (backward compatibility behavior)', function(t) {
 
   //  We ensure that there are no overrides.
   nock.restore();
@@ -35,7 +34,7 @@ tap.test('recording turns off nock interception (backward compatibility behavior
 
 });
 
-tap.test('records', function(t) {
+test('records', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -61,7 +60,7 @@ tap.test('records', function(t) {
   req.end('ABCDEF');
 });
 
-tap.test('records objects', function(t) {
+test('records objects', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -92,7 +91,7 @@ tap.test('records objects', function(t) {
   req.end('012345');
 });
 
-tap.test('records and replays objects correctly', function(t) {
+test('records and replays objects correctly', {skip: process.env.AIRPLANE}, function(t) {
 
   nock.restore();
   nock.recorder.clear();
@@ -139,7 +138,7 @@ tap.test('records and replays objects correctly', function(t) {
 
 });
 
-tap.test('records and replays correctly with filteringRequestBody', function(t) {
+test('records and replays correctly with filteringRequestBody', {skip: process.env.AIRPLANE}, function(t) {
 
   nock.restore();
   nock.recorder.clear();
@@ -194,7 +193,7 @@ tap.test('records and replays correctly with filteringRequestBody', function(t) 
 
 });
 
-tap.test('checks if callback is specified', function(t) {
+test('checks if callback is specified', {skip: process.env.AIRPLANE}, function(t) {
   var options = {
     host: 'www.google.com', method: 'GET', path: '/', port: 80
   };
@@ -208,7 +207,7 @@ tap.test('checks if callback is specified', function(t) {
   t.end();
 });
 
-tap.test('when request body is json, it goes unstringified', function(t) {
+test('when request body is json, it goes unstringified', {skip: process.env.AIRPLANE}, function(t) {
   var payload = {a: 1, b: true};
   var options = {
     method: 'POST',
@@ -235,7 +234,7 @@ tap.test('when request body is json, it goes unstringified', function(t) {
   request.end(JSON.stringify(payload));
 });
 
-tap.test('when request body is json, it goes unstringified in objects', function(t) {
+test('when request body is json, it goes unstringified in objects', {skip: process.env.AIRPLANE}, function(t) {
   var payload = {a: 1, b: true};
   var options = {
     method: 'POST',
@@ -270,7 +269,7 @@ tap.test('when request body is json, it goes unstringified in objects', function
   request.end(JSON.stringify(payload));
 });
 
-tap.test('records nonstandard ports', function(t) {
+test('records nonstandard ports', function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -280,8 +279,7 @@ tap.test('records nonstandard ports', function(t) {
 
   //  Create test http server and perform the tests while it's up.
   var testServer = http.createServer(function(req, res) {
-    res.write(RESPONSE_BODY);
-    res.end();
+    res.end(RESPONSE_BODY);
   }).listen(8081, function(err) {
 
     t.equal(err, undefined);
@@ -323,7 +321,7 @@ tap.test('records nonstandard ports', function(t) {
 
 });
 
-tap.test('rec() throws when reenvoked with already recorder requests', function(t) {
+test('rec() throws when reenvoked with already recorder requests', function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -340,7 +338,7 @@ tap.test('rec() throws when reenvoked with already recorder requests', function(
   }
 });
 
-tap.test('records https correctly', function(t) {
+test('records https correctly', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -374,7 +372,7 @@ tap.test('records https correctly', function(t) {
   req.end('012345');
 });
 
-tap.test('records request headers correctly', function(t) {
+test('records request headers correctly', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -409,7 +407,7 @@ tap.test('records request headers correctly', function(t) {
   req.end();
 });
 
-tap.test('records and replays gzipped nocks correctly', function(t) {
+test('records and replays gzipped nocks correctly', {skip: process.env.AIRPLANE}, function(t) {
 
   nock.restore();
   nock.recorder.clear();
@@ -457,7 +455,7 @@ tap.test('records and replays gzipped nocks correctly', function(t) {
 
 });
 
-tap.test('records and replays gzipped nocks correctly when gzip is returned as a string', function(t) {
+test('records and replays gzipped nocks correctly when gzip is returned as a string', {skip: process.env.AIRPLANE}, function(t) {
 
   nock.restore();
   nock.recorder.clear();
@@ -513,7 +511,7 @@ tap.test('records and replays gzipped nocks correctly when gzip is returned as a
 
 });
 
-tap.test('records and replays nocks correctly', function(t) {
+test('records and replays nocks correctly', {skip: process.env.AIRPLANE}, function(t) {
 
   nock.restore();
   nock.recorder.clear();
@@ -566,7 +564,7 @@ tap.test('records and replays nocks correctly', function(t) {
 
 });
 
-tap.test('doesn\'t record request headers by default', function(t) {
+test('doesn\'t record request headers by default', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -597,8 +595,7 @@ tap.test('doesn\'t record request headers by default', function(t) {
   req.end();
 });
 
-
-tap.test('will call a custom logging function', function(t) {
+test('will call a custom logging function', {skip: process.env.AIRPLANE}, function(t) {
   // This also tests that use_separator is on by default.
   nock.restore();
   nock.recorder.clear();
@@ -633,8 +630,7 @@ tap.test('will call a custom logging function', function(t) {
   req.end();
 });
 
-
-tap.test('use_separator:false is respected', function(t) {
+test('use_separator:false is respected', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -669,8 +665,7 @@ tap.test('use_separator:false is respected', function(t) {
   req.end();
 });
 
-
-tap.test('records request headers except user-agent if enable_reqheaders_recording is set to true', function(t) {
+test('records request headers except user-agent if enable_reqheaders_recording is set to true', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -703,7 +698,7 @@ tap.test('records request headers except user-agent if enable_reqheaders_recordi
   req.end();
 });
 
-tap.test('includes query parameters from superagent', function(t) {
+test('includes query parameters from superagent', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -724,7 +719,30 @@ tap.test('includes query parameters from superagent', function(t) {
     });
 });
 
-tap.test('works with clients listening for readable', function(t) {
+test('encodes the query parameters when not outputing objects', {skip: process.env.AIRPLANE}, function(t) {
+
+  nock.restore();
+  nock.recorder.clear();
+  t.equal(nock.recorder.play().length, 0);
+
+  nock.recorder.rec({
+    dont_print: true,
+    output_objects: false
+  });
+
+  superagent.get('http://google.com')
+    .query({q: 'test search++' })
+    .end(function(res) {
+      nock.restore();
+      var recording = nock.recorder.play();
+      t.true(recording.length >= 1);
+      t.true(recording[0].indexOf('test%20search%2B%2B') !== -1);
+      t.end();
+    });
+
+});
+
+test('works with clients listening for readable', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -734,8 +752,7 @@ tap.test('works with clients listening for readable', function(t) {
 
   //  Create test http server and perform the tests while it's up.
   var testServer = http.createServer(function(req, res) {
-    res.write(RESPONSE_BODY);
-    res.end();
+    res.end(RESPONSE_BODY);
   }).listen(8081, function(err) {
 
     // t.equal(err, undefined);
@@ -788,7 +805,7 @@ tap.test('works with clients listening for readable', function(t) {
 
 });
 
-tap.test('outputs query string parameters using query()', function(t) {
+test('outputs query string parameters using query()', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -816,7 +833,35 @@ tap.test('outputs query string parameters using query()', function(t) {
   });
 });
 
-tap.test('removes query params from from that path and puts them in query()', function(t) {
+test('outputs query string arrays correctly', {skip: process.env.AIRPLANE}, function(t) {
+  nock.restore();
+  nock.recorder.clear();
+  t.equal(nock.recorder.play().length, 0);
+
+  nock.recorder.rec(true);
+
+  var makeRequest = function(callback) {
+    superagent
+      .get('https://example.com/')
+      .query({'foo':['bar', 'baz']})
+      .end(callback);
+  };
+
+  makeRequest(function(err, resp) {
+    t.ok(!err, err && err.message || 'no error');
+    t.ok(resp, 'have response');
+    t.ok(resp.headers, 'have headers');
+
+    var ret = nock.recorder.play();
+    t.equal(ret.length, 1);
+    t.type(ret[0], 'string');
+    var match = "\nnock('https://example.com:443', {\"encodedQueryParams\":true})\n  .get('/')\n  .query({\"foo\":[\"bar\",\"baz\"]})\n  .reply(";
+    t.equal(ret[0].substring(0, match.length), match);
+    t.end();
+  });
+});
+
+test('removes query params from that path and puts them in query()', {skip: process.env.AIRPLANE}, function(t) {
   nock.restore();
   nock.recorder.clear();
   t.equal(nock.recorder.play().length, 0);
@@ -842,7 +887,7 @@ tap.test('removes query params from from that path and puts them in query()', fu
   req.end('ABCDEF');
 });
 
-tap.test("respects http.request() consumers", function(t) {
+test("respects http.request() consumers", function(t) {
   //  Create test http server and perform the tests while it's up.
   var testServer = http.createServer(function(req, res) {
     res.write('foo');
@@ -887,7 +932,7 @@ tap.test("respects http.request() consumers", function(t) {
   });
 });
 
-tap.test("teardown", function(t) {
+test("teardown", function(t) {
   var leaks = Object.keys(global)
     .splice(globalCount, Number.MAX_VALUE);
 

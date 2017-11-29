@@ -5,7 +5,8 @@ var nock    = require('../.')
   , tap     = require('tap')
   , http    = require('http')
   , fs      = require('fs')
-  , exists  = fs.existsSync;
+  , exists  = fs.existsSync
+  , _       = require('lodash');
 
 nock.enableNetConnect();
 
@@ -40,9 +41,6 @@ function testNock (t) {
   req.end();
 }
 
-
-
-
 function nockBackWithFixture (t, scopesLoaded) {
   var scopesLength = scopesLoaded ? 1 : 0;
 
@@ -61,8 +59,6 @@ function setOriginalModeOnEnd(t, nockBack) {
   });
 }
 
-
-
 tap.test('nockBack throws an exception when fixtures is not set', function (t) {
 
   try {
@@ -77,8 +73,54 @@ tap.test('nockBack throws an exception when fixtures is not set', function (t) {
 
 });
 
+tap.test('nockBack throws an exception when fixtureName is not a string', function (t) {
 
+  nockBack.fixtures = __dirname + '/fixtures';
 
+  try {
+    nockBack();
+  } catch (e) {
+    t.ok(true, 'excpected exception');
+    t.equal(e.message, 'Parameter fixtureName must be a string');
+    t.end();
+    return;
+  }
+
+  t.fail(true, false, 'test should have ended');
+
+});
+
+tap.test('nockBack returns a promise when neither options nor nockbackFn are specified', function (t) {
+
+  nockBack.fixtures = __dirname + '/fixtures';
+
+  var promise = nockBack('test-promise-fixture.json');
+  t.ok(promise);
+  promise.then((params) => {
+    var nockDone = params.nockDone;
+    var context = params.context;
+    t.assert(_.isFunction(nockDone));
+    t.assert(_.isObject(context));
+    t.end();
+  });
+
+});
+
+tap.test('nockBack returns a promise when nockbackFn is not specified', function (t) {
+
+  nockBack.fixtures = __dirname + '/fixtures';
+
+  var promise = nockBack('test-promise-fixture.json', {test: 'options'});
+  t.ok(promise);
+  promise.then((params) => {
+    var nockDone = params.nockDone;
+    var context = params.context;
+    t.assert(_.isFunction(nockDone));
+    t.assert(_.isObject(context));
+    t.end();
+  });
+
+});
 
 tap.test('nockBack wild tests', function (nw) {
 
@@ -92,7 +134,7 @@ tap.test('nockBack wild tests', function (nw) {
     testNock(t);
   });
 
-  nw.test('nock back doesn\'t do anything', function (t) {
+  nw.test('nock back doesn\'t do anything', {skip: process.env.AIRPLANE}, function (t) {
     nockBackWithFixture(t, false);
   });
 
@@ -109,14 +151,17 @@ tap.test('nockBack dryrun tests', function (nw) {
   nockBack.fixtures = __dirname + '/fixtures';
   nockBack.setMode('dryrun');
 
-  nw.test('goes to internet even when no nockBacks are running', function(t) {
+  nw.test('goes to internet even when no nockBacks are running', {skip: process.env.AIRPLANE}, function(t) {
     var req = http.request({
         host: "www.amazon.com"
       , path: '/'
       , port: 80
       }, function(res) {
 
-        t.ok([200, 302].indexOf(res.statusCode) >= 0);
+        res.on('data', function() {
+          //node v 0.10 requires this listener
+        });
+        t.ok([200, 301, 302].indexOf(res.statusCode) >= 0);
         t.end();
 
       });
@@ -140,8 +185,7 @@ tap.test('nockBack dryrun tests', function (nw) {
     nockBackWithFixture(t, true);
   });
 
-  nw.test('goes it internet, doesn\'t recorded new fixtures', function (t) {
-
+  nw.test('goes to internet, doesn\'t record new fixtures', {skip: process.env.AIRPLANE}, function (t) {
     var dataCalled = false;
 
     var fixture = 'someDryrunFixture.json';
@@ -151,24 +195,15 @@ tap.test('nockBack dryrun tests', function (nw) {
 
     nockBack(fixture, function (done) {
       var req = http.request({
-          host: "www.amazon.com"
+          host: "amazon.com"
         , path: '/'
         , port: 80
         }, function(res) {
 
-          t.ok([200, 302].indexOf(res.statusCode) >= 0);
+          t.ok([200, 301, 302].indexOf(res.statusCode) >= 0);
           res.on('end', function() {
-            var doneFails = false;
-
             t.ok(dataCalled);
-            try {
-              done();
-              t.false(exists(fixtureLoc));
-              scope.done();
-            } catch(err) {
-              doneFails = true;
-            }
-            t.ok(doneFails);
+            t.false(exists(fixtureLoc));
             t.end();
           });
 
@@ -197,7 +232,7 @@ tap.test('nockBack dryrun tests', function (nw) {
 tap.test('nockBack record tests', function (nw) {
   nockBack.setMode('record');
 
-  nw.test('it records when configured correctly', function (t) {
+  nw.test('it records when configured correctly', {skip: process.env.AIRPLANE}, function (t) {
     nockBack.fixtures = __dirname + '/fixtures';
 
     var options = {
@@ -223,7 +258,7 @@ tap.test('nockBack record tests', function (nw) {
 
   //Adding this test because there was an issue when not calling
   //nock.activate() after calling nock.restore()
-  nw.test('it can record twice', function (t) {
+  nw.test('it can record twice', {skip: process.env.AIRPLANE}, function (t) {
     nockBack.fixtures = __dirname + '/fixtures';
 
     var options = {
@@ -245,7 +280,6 @@ tap.test('nockBack record tests', function (nw) {
 
   });
 
-
   nw.test('it shouldn\'t allow outside calls', function (t) {
 
     var fixture = 'wrongUri.json';
@@ -264,7 +298,6 @@ tap.test('nockBack record tests', function (nw) {
 
   });
 
-
   nw.test('it loads your recorded tests', function (t) {
 
     nockBack('goodRequest.json', function (done) {
@@ -277,8 +310,7 @@ tap.test('nockBack record tests', function (nw) {
 
   });
 
-
-  nw.test('it can filter after recording', function (t) {
+  nw.test('it can filter after recording', {skip: process.env.AIRPLANE}, function (t) {
     nockBack.fixtures = __dirname + '/fixtures';
 
     var options = {
@@ -309,7 +341,6 @@ tap.test('nockBack record tests', function (nw) {
         t.end();
       });
     });
-
   });
 
   nw.end();
@@ -325,7 +356,6 @@ tap.test('nockBack lockdown tests', function (nw) {
     testNock(t);
   });
 
-
   nw.test('nock back loads scope', function (t) {
     nockBackWithFixture(t, true);
   });
@@ -338,12 +368,10 @@ tap.test('nockBack lockdown tests', function (nw) {
         throw new Error('should not come here!');
       });
 
-
     req.on('error', function (err) {
       t.equal(err.message.trim(), 'Nock: Not allow net connect for "google.com:80/"');
       t.end();
     });
-
 
     req.end();
   });
