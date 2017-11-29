@@ -49,7 +49,7 @@ For instance, if a module performs HTTP requests to a CouchDB server or makes HT
   * [Request Body filtering](#request-body-filtering)
   * [Request Headers Matching](#request-headers-matching)
   * [Optional Requests](#optional-requests)
-  * [Allow __unmocked__ requests on a mocked hostname](#allow-unmocked-requests-on-a-mocked-hostname)
+  * [Allow __unmocked__ requests on a mocked hostname](#allow-__unmocked__-requests-on-a-mocked-hostname)
 - [Expectations](#expectations)
   * [.isDone()](#isdone)
   * [.cleanAll()](#cleanall)
@@ -80,6 +80,7 @@ For instance, if a module performs HTTP requests to a CouchDB server or makes HT
 - [Debugging](#debugging)
 - [PROTIP](#protip)
 - [Contributing](#contributing)
+  * [Commit Message conventions](#commit-message-conventions)
   * [Generate README TOC](#generate-readme-toc)
   * [Running tests](#running-tests)
     + [Airplane mode](#airplane-mode)
@@ -303,6 +304,14 @@ You can specify the return status code for a path on the first argument of reply
 var scope = nock('http://myapp.iriscouch.com')
                 .get('/users/1')
                 .reply(404);
+```
+
+Or as an object with both code and message:
+
+```js
+var scope = nock('http://myapp.iriscouch.com')
+                .get('/users/1')
+                .reply({ statusCode: 200, statusMessage: 'OK' });
 ```
 
 You can also specify the reply body as a string:
