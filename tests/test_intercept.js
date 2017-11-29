@@ -383,6 +383,84 @@ test("get with reply callback", function(t) {
   req.end();
 });
 
+test("get with reply callback with status message", function(t) {
+  var scope = nock('http://www.google.com')
+     .get('/')
+     .reply({ statusCode: 200, statusMessage: 'OK' }, function() {
+        return 'OK!';
+     });
+
+  var req = http.request({
+    host: "www.google.com",
+    path: '/',
+    port: 80
+  }, function(res) {
+    t.equal(res.statusCode, 200);
+    t.equal(res.statusMessage, 'OK');
+    res.on('end', function() {
+      scope.done();
+      t.end();
+    });
+    res.on('data', function(data) {
+      t.equal(data.toString(), 'OK!', 'response should match');
+    });
+  });
+
+  req.end();
+});
+
+test("get with reply callback with status message only", function(t) {
+  var scope = nock('http://www.google.com')
+     .get('/')
+     .reply({ statusMessage: 'OK' }, function() {
+        return 'OK!';
+     });
+
+  var req = http.request({
+    host: "www.google.com",
+    path: '/',
+    port: 80
+  }, function(res) {
+    t.equal(res.statusCode, 200);
+    t.equal(res.statusMessage, 'OK');
+    res.on('end', function() {
+      scope.done();
+      t.end();
+    });
+    res.on('data', function(data) {
+      t.equal(data.toString(), 'OK!', 'response should match');
+    });
+  });
+
+  req.end();
+});
+
+test("get with reply callback with status code only", function(t) {
+  var scope = nock('http://www.google.com')
+     .get('/')
+     .reply({ statusCode: 200 }, function() {
+        return 'OK!';
+     });
+
+  var req = http.request({
+    host: "www.google.com",
+    path: '/',
+    port: 80
+  }, function(res) {
+    t.equal(res.statusCode, 200);
+    t.equal(res.statusMessage, '');
+    res.on('end', function() {
+      scope.done();
+      t.end();
+    });
+    res.on('data', function(data) {
+      t.equal(data.toString(), 'OK!', 'response should match');
+    });
+  });
+
+  req.end();
+});
+
 test("get to different subdomain with reply callback and filtering scope", function(t) {
   //  We scope for www.google.com but through scope filtering we
   //  will accept any <subdomain>.google.com
